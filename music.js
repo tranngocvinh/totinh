@@ -15,13 +15,21 @@
    ========================================================================= */
 
 const PLAYLIST = [
+   
     {
-        id: "bai-mac-dinh",
-        title: "Bản nhạc của chúng mình",
-        artist: "",
-        src: "sound/videoplayback.mp3",
+        id: "Boy With Luv",
+        title: "Boy With Luv",
+        artist: "BTS",
+        src: "sound/Boy With Luv.mp3",
         note: "bài đang dùng làm nhạc nền"
     },
+    {
+        id: "Zack Tabudlo",
+        title: "Zack Tabudlo",
+        artist: "Pano",
+        src: "sound/Zack Tabudlo.mp3",
+        note: "bài đang dùng làm nhạc nền"
+    }
 
     // Thêm bài mới theo mẫu này:
     // {
