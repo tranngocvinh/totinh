@@ -14,8 +14,8 @@
    ============================================================================= */
 
 window.SUPABASE_CONFIG = {
-    url: "",        // ví dụ: "https://abcdefgh.supabase.co"
-    anonKey: "",    // ví dụ: "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."
+    url: "https://aplabcbsxrgpaxftwola.supabase.co",        // ví dụ: "https://abcdefgh.supabase.co"
+    anonKey: "sb_publishable_5i4LBKlentnoFaEE6-2xzA_mrg5W-5C",    // ví dụ: "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."
 
     // Tên bảng và bucket ảnh, khớp với supabase/schema.sql
     table: "story_pages",
