@@ -1,4 +1,4 @@
-
+﻿
         @import url('https://fonts.googleapis.com/css2?family=Parisienne&Lora:wght@400;700&display=swap');
 
         :root {
@@ -3482,4 +3482,49 @@ body.loaded .loading-screen {
         width: clamp(30px, 6vw, 40px);
         height: clamp(30px, 6vw, 40px);
     }
+}
+
+/* Trang chỉ có chữ (chưa khai photos trong pages.js).
+   Vài layout chia cột ngang khi có ảnh; không có ảnh thì phải xếp dọc lại,
+   nếu không tiêu đề và đoạn chữ sẽ nằm cạnh nhau rồi tràn ra ngoài trang. */
+.page-content.is-text-only {
+    flex-direction: column;
+}
+
+.page-content.is-text-only .page-title,
+.page-content.is-text-only .collage-footer {
+    width: 100%;
+}
+
+/* Ô ảnh khai sẵn trong pages.js nhưng chưa có file -> ẩn hẳn đi.
+   Dùng !important vì các rule .layout-N đặt display cho .photo-item. */
+.photo-item.is-missing-photo,
+.photo-collage.is-missing-photo {
+    display: none !important;
+}
+
+/* Đoạn tâm sự dài thì cho cuộn trong khung, thà cuộn còn hơn bị cắt mất chữ */
+.collage-footer {
+    max-height: 100%;
+    overflow-y: auto;
+}
+
+.page-content.is-text-only .collage-footer {
+    flex-shrink: 1;
+    min-height: 0;
+}
+
+/* .layout-5 xếp ngang (tiêu đề | ảnh | chữ) nhưng .page-title lại đặt
+   width: 100%, nên ảnh và đoạn chữ bị đẩy văng ra ngoài trang.
+   Cho phép xuống dòng: tiêu đề chiếm trọn dòng đầu, ảnh và chữ chia nhau
+   dòng dưới đúng như ý đồ ban đầu. */
+.layout-5 {
+    flex-wrap: wrap;
+    align-content: flex-start;
+}
+
+.layout-5 .photo-collage,
+.layout-5 .collage-footer {
+    flex: 1 1 45%;
+    min-width: 0;
 }

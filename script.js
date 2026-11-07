@@ -18,8 +18,8 @@ document.addEventListener('DOMContentLoaded', function () {
     const loadingText = document.querySelector('.loading-text');
     const book = document.getElementById('book');
     const bookContainer = document.getElementById('bookContainer');
-    renderStoryPages();
-    const pages = book.querySelectorAll('.page-wrapper');
+    // Được gán lại sau khi tải dữ liệu (Supabase hoặc pages.js) và render xong
+    let pages = [];
     const prevBtn = document.getElementById('prevBtn');
     const nextBtn = document.getElementById('nextBtn');
     const soundToggle = document.getElementById('soundToggle');
@@ -51,23 +51,24 @@ document.addEventListener('DOMContentLoaded', function () {
     let isSoundOn = true;
     let isFlipping = false;
 
-    function simulateLoading() {
-        let progress = 0;
-        const interval = setInterval(() => {
-            progress += Math.random() * 15 + 5;
-            if (progress > 100) progress = 100;
+    // Thanh tiến trình chỉ là hiệu ứng trang trí; dữ liệu thật được tải song song
+    // ở boot(). Khi cả hai xong mới mở sách, nên không bị hở trang trắng.
+    function startLoading() {
+        return new Promise(resolve => {
+            let progress = 0;
+            const interval = setInterval(() => {
+                progress += Math.random() * 15 + 5;
+                if (progress > 100) progress = 100;
 
-            loadingProgress.style.width = `${progress}%`;
-            loadingText.textContent = `${Math.round(progress)}%`;
+                loadingProgress.style.width = `${progress}%`;
+                loadingText.textContent = `${Math.round(progress)}%`;
 
-            if (progress === 100) {
-                clearInterval(interval);
-                setTimeout(() => {
-                    document.body.classList.add('loaded');
-                    initializeBook();
-                }, 500);
-            }
-        }, 200);
+                if (progress === 100) {
+                    clearInterval(interval);
+                    setTimeout(resolve, 500);
+                }
+            }, 200);
+        });
     }
 
     // ===== Sinh các trang kỷ niệm từ pages.js =====
@@ -75,34 +76,35 @@ document.addEventListener('DOMContentLoaded', function () {
     // chỉ cần thêm dữ liệu, không phải đụng vào index.html.
     function storyPageHTML(page, order) {
         const decor = page.decor || DEFAULT_DECOR[order % DEFAULT_DECOR.length];
+        const decorIcon = decor.icon === 'heart' ? 'heart' : 'flower';
         const layout = page.layout || (order % 7) + 1;
 
         const photos = (page.photos || []).map(photo => `
                     <div class="photo-item">
                         <div class="photo-frame">
-                            <img src="${photo.src}" alt="${photo.alt || ''}" loading="lazy">
-                            ${photo.caption ? `<div class="photo-caption">${photo.caption}</div>` : ''}
+                            <img src="${escapeHTML(photo.src)}" alt="${escapeHTML(photo.alt || '')}" loading="lazy">
+                            ${photo.caption ? `<div class="photo-caption">${escapeHTML(photo.caption)}</div>` : ''}
                         </div>
                     </div>`).join('');
 
         const bubbles = (page.bubbles || []).map(bubble => `
-                    <div class="text-bubble-${bubble.variant || 1}" style="${bubble.style || ''}">${bubble.text}</div>`).join('');
+                    <div class="text-bubble-${Number(bubble.variant) === 2 ? 2 : 1}" style="${escapeHTML(bubble.style || '')}">${escapeHTML(bubble.text || '')}</div>`).join('');
 
-        return `<div class="page-wrapper" data-story data-key="${page.id}">
+        return `<div class="page-wrapper" data-story data-key="${escapeHTML(page.id)}">
         <div class="front">
-            <div class="page-content layout-${layout}">
-                <div class="date-label">${page.date}</div>
-                ${page.title ? `<h2 class="page-title">${page.title}</h2>` : ''}
+            <div class="page-content layout-${layout}${photos || bubbles ? '' : ' is-text-only'}">
+                <div class="date-label">${escapeHTML(page.date)}</div>
+                ${page.title ? `<h2 class="page-title">${escapeHTML(page.title)}</h2>` : ''}
                 ${photos || bubbles ? `<div class="photo-collage">${photos}${bubbles}
                 </div>` : ''}
                 <div class="collage-footer">
                     <p class="love-note">${page.note || ''}</p>
                     <div class="signature">
                         <div class="signature-line"></div>
-                        <span>${page.signature || ''}</span>
+                        <span>${escapeHTML(page.signature || '')}</span>
                     </div>
                 </div>
-                <i class="fas fa-${decor.icon} ${decor.icon}-decoration" style="${decor.style}"></i>
+                <i class="fas fa-${decorIcon} ${decorIcon}-decoration" style="${escapeHTML(decor.style || '')}"></i>
                 <div class="page-corner"></div>
                 <span class="page-number"></span>
             </div>
@@ -111,12 +113,16 @@ document.addEventListener('DOMContentLoaded', function () {
     </div>`;
     }
 
-    function renderStoryPages() {
+    function renderStoryPages(data) {
         const anchor = document.getElementById('storyAnchor');
-        const data = typeof STORY_PAGES !== 'undefined' ? STORY_PAGES : null;
 
-        if (!anchor || !data) {
-            console.error('[Story] Thiếu #storyAnchor trong index.html hoặc chưa nạp pages.js');
+        if (!anchor) {
+            console.error('[Story] Thiếu #storyAnchor trong index.html');
+            return;
+        }
+
+        if (!Array.isArray(data) || !data.length) {
+            console.warn('[Story] Không có trang kỷ niệm nào để render.');
             return;
         }
 
@@ -145,6 +151,28 @@ document.addEventListener('DOMContentLoaded', function () {
             if (!page.hasAttribute('data-story')) return;
             const number = page.querySelector('.page-number');
             if (number) number.textContent = index;
+        });
+    }
+
+    // Ô ảnh có thể khai trước trong pages.js rồi mới chép file vào sau.
+    // Ô nào chưa có file thì ẩn đi; ẩn hết thì trang lùi về kiểu chỉ-có-chữ
+    // để bố cục không bị hở một mảng trống.
+    function hideMissingPhotos() {
+        document.querySelectorAll('[data-story] .photo-frame img').forEach(img => {
+            const drop = () => {
+                const item = img.closest('.photo-item');
+                if (item) item.classList.add('is-missing-photo');
+
+                const content = img.closest('.page-content');
+                if (!content || content.querySelector('.photo-item:not(.is-missing-photo)')) return;
+
+                content.classList.add('is-text-only');
+                const collage = content.querySelector('.photo-collage');
+                if (collage) collage.classList.add('is-missing-photo');
+            };
+
+            if (img.complete && img.naturalWidth === 0) drop();
+            else img.addEventListener('error', drop);
         });
     }
 
@@ -363,6 +391,7 @@ document.addEventListener('DOMContentLoaded', function () {
 
     function initializeBook() {
         numberStoryPages();
+        hideMissingPhotos();
         syncTableOfContents();
         buildQuickMenu();
         buildMusicList();
@@ -613,5 +642,30 @@ document.addEventListener('DOMContentLoaded', function () {
         updateButtons();
     }
 
-    simulateLoading();
+    // Tải dữ liệu (Supabase nếu đã cấu hình, ngược lại pages.js) song song với
+    // hiệu ứng loading, rồi mới dựng sách.
+    async function boot() {
+        const loadingPromise = startLoading();
+        let story = { pages: [], source: 'local' };
+
+        try {
+            if (window.StoryAPI) {
+                story = await window.StoryAPI.fetchStoryPages();
+            } else if (typeof STORY_PAGES !== 'undefined') {
+                story = { pages: STORY_PAGES, source: 'local' };
+            }
+        } catch (err) {
+            console.warn('[Story] Lỗi khi tải dữ liệu, dùng pages.js dự phòng:', err);
+            if (typeof STORY_PAGES !== 'undefined') story = { pages: STORY_PAGES, source: 'local' };
+        }
+
+        await loadingPromise;
+
+        renderStoryPages(story.pages);
+        pages = book.querySelectorAll('.page-wrapper');
+        document.body.classList.add('loaded');
+        initializeBook();
+    }
+
+    boot();
 });

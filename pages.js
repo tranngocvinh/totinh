@@ -1,8 +1,16 @@
 /* =========================================================================
-   NỘI DUNG CÁC TRANG KỶ NIỆM
+   NỘI DUNG CÁC TRANG KỶ NIỆM (DỮ LIỆU DỰ PHÒNG + NGUỒN SEED)
    -------------------------------------------------------------------------
-   Thêm trang mới = thêm 1 object vào mảng dưới đây, đặt đúng vị trí theo
-   thứ tự thời gian. Trang và mục lục sẽ tự sinh ra, không cần sửa index.html.
+   Từ khi có Supabase, nội dung thật nằm trong bảng story_pages và được
+   thêm/sửa/xóa tại admin.html. File này chỉ còn dùng khi:
+     - supabase-config.js chưa được điền URL/key
+     - không kết nối được Supabase (mạng lỗi, bảng chưa tạo...)
+     - cần sinh lại supabase/seed.sql từ dữ liệu cũ:
+         node supabase/build-seed.mjs
+   Vì vậy sửa nội dung trên web admin là đủ, không cần sửa file này nữa.
+
+   Thêm trang mới bằng tay = thêm 1 object vào mảng dưới đây, đặt đúng vị trí
+   theo thứ tự thời gian. Trang và mục lục sẽ tự sinh ra, không cần sửa index.html.
 
    Các field:
      id        (bắt buộc) khóa duy nhất, mặc định dùng "yyyy-mm-dd"

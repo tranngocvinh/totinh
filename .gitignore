@@ -1,0 +1,7 @@
+# Cấu hình cục bộ của công cụ, không thuộc website
+.claude/
+
+# File hệ điều hành / log
+.DS_Store
+Thumbs.db
+*.log

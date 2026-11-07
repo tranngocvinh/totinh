@@ -375,6 +375,11 @@ Sau đó anh vào xem thread của em và thấy có comment của Ly, thế là
         <button class="btn" id="prevBtn" disabled><i class="fas fa-chevron-left"></i> Trước</button>
         <button class="btn" id="nextBtn">Sau <i class="fas fa-chevron-right"></i></button>
     </div>
+    <!-- Supabase: nếu đã điền supabase-config.js, nội dung được tải từ database.
+         Chưa cấu hình thì trang tự dùng pages.js như cũ. -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.119.0/dist/umd/supabase.js"></script>
+    <script src="supabase-config.js"></script>
+    <script src="story-api.js"></script>
     <script src="pages.js"></script>
     <script src="music.js"></script>
     <script src="script.js"></script>

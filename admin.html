@@ -1,0 +1,284 @@
+<!DOCTYPE html>
+<html lang="vi">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="robots" content="noindex, nofollow">
+    <title>Quản trị kỷ niệm · Our Love Story</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Lora:ital,wght@0,400;0,600;0,700;1,400&family=Parisienne&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="admin.css">
+</head>
+
+<body>
+    <div class="page-shell">
+        <header class="app-header">
+            <a class="brand" href="index.html">
+                <span class="brand-heart"><i class="fas fa-heart"></i></span>
+                <span class="brand-text">
+                    <strong>Our Love Story</strong>
+                    <small>Quản trị kỷ niệm</small>
+                </span>
+            </a>
+            <div class="header-actions">
+                <a class="btn btn-ghost" href="index.html" target="_blank" rel="noopener">
+                    <i class="fas fa-book-open"></i> Xem sách
+                </a>
+                <button class="btn btn-ghost" id="logoutBtn" type="button" hidden>
+                    <i class="fas fa-right-from-bracket"></i> Đăng xuất
+                </button>
+            </div>
+        </header>
+
+        <main class="app-main">
+            <div class="boot-view" id="bootView">
+                <i class="fas fa-heart"></i>
+                <p>Đang kết nối Supabase…</p>
+            </div>
+
+            <!-- Chưa cấu hình Supabase -->
+            <section class="card setup-card" id="setupView" hidden>
+                <div class="setup-icon"><i class="fas fa-plug"></i></div>
+                <p class="eyebrow">Cài đặt một lần</p>
+                <h1>Chưa kết nối Supabase</h1>
+                <p class="muted" id="setupMessage">
+                    Điền Project URL và anon key vào <code>supabase-config.js</code> để bắt đầu.
+                </p>
+
+                <ol class="setup-steps">
+                    <li>
+                        <strong>Tạo project</strong> tại <a href="https://supabase.com" target="_blank" rel="noopener">supabase.com</a>.
+                    </li>
+                    <li>
+                        <strong>Chạy SQL:</strong> mở SQL Editor, dán toàn bộ <code>supabase/setup.sql</code> rồi Run.
+                    </li>
+                    <li>
+                        <strong>Tạo tài khoản admin:</strong> Authentication → Users → Add user (nhớ bật Auto Confirm).
+                    </li>
+                    <li>
+                        <strong>Lấy key:</strong> Project Settings → API → copy Project URL và anon/publishable key.
+                    </li>
+                    <li>
+                        <strong>Dán vào file</strong> <code>supabase-config.js</code>:
+                        <pre><code>window.SUPABASE_CONFIG = {
+    url: "https://abcdefgh.supabase.co",
+    anonKey: "eyJhbGciOiJIUzI1NiIs..."
+};</code></pre>
+                    </li>
+                </ol>
+
+                <p class="hint">
+                    Hướng dẫn đầy đủ: <a href="HUONG-DAN-SUPABASE.md" target="_blank" rel="noopener">HUONG-DAN-SUPABASE.md</a>
+                </p>
+            </section>
+
+            <!-- Đăng nhập -->
+            <section class="auth-card" id="loginView" hidden>
+                <aside class="auth-aside">
+                    <span class="eyebrow">Our Love Story</span>
+                    <h1>Giữ lại<br>từng khoảnh khắc</h1>
+                    <p>Đăng nhập để thêm, sửa và sắp xếp những trang kỷ niệm của hai đứa mình.</p>
+                    <blockquote>“Mỗi trang sách là một ngày mình đã có nhau.”</blockquote>
+                    <i class="fas fa-heart auth-heart auth-heart-1" aria-hidden="true"></i>
+                    <i class="fas fa-heart auth-heart auth-heart-2" aria-hidden="true"></i>
+                    <i class="fas fa-heart auth-heart auth-heart-3" aria-hidden="true"></i>
+                </aside>
+
+                <form class="auth-form" id="loginForm" novalidate>
+                    <h2>Đăng nhập quản trị</h2>
+                    <p class="muted">Tài khoản được tạo trong Supabase → Authentication → Users.</p>
+
+                    <label class="field">
+                        <span>Email</span>
+                        <input type="email" id="loginEmail" autocomplete="username" placeholder="ban@example.com" required>
+                    </label>
+
+                    <label class="field">
+                        <span>Mật khẩu</span>
+                        <input type="password" id="loginPassword" autocomplete="current-password" placeholder="••••••••" required>
+                    </label>
+
+                    <p class="form-error" id="loginError" hidden></p>
+
+                    <button class="btn btn-primary btn-block" type="submit" id="loginBtn">
+                        <i class="fas fa-unlock-keyhole"></i> Đăng nhập
+                    </button>
+
+                    <p class="hint">Quên mật khẩu? Đổi trực tiếp trong Supabase Dashboard.</p>
+                </form>
+            </section>
+
+            <!-- Bảng điều khiển -->
+            <section id="dashboardView" hidden>
+                <div class="welcome">
+                    <div>
+                        <p class="eyebrow">Xin chào</p>
+                        <h1>Những trang kỷ niệm</h1>
+                        <p class="muted" id="userEmail"></p>
+                    </div>
+                    <button class="btn btn-primary" id="newPageBtn" type="button">
+                        <i class="fas fa-plus"></i> Thêm trang
+                    </button>
+                </div>
+
+                <div class="stats" id="stats"></div>
+
+                <div class="list-toolbar">
+                    <label class="search">
+                        <i class="fas fa-magnifying-glass" aria-hidden="true"></i>
+                        <input id="searchInput" type="search" placeholder="Tìm theo tiêu đề, nội dung, ngày…" autocomplete="off">
+                    </label>
+                    <button class="btn btn-ghost" id="refreshBtn" type="button">
+                        <i class="fas fa-rotate"></i> Tải lại
+                    </button>
+                </div>
+
+                <div class="page-list" id="pageList" aria-live="polite"></div>
+            </section>
+        </main>
+
+        <footer class="app-footer">
+            <span><i class="fas fa-heart"></i> Our Love Story</span>
+            <span class="dot">·</span>
+            <span>Dữ liệu lưu trên Supabase</span>
+        </footer>
+    </div>
+
+    <!-- Trình soạn trang -->
+    <div class="editor-overlay" id="editorOverlay" hidden></div>
+    <aside class="editor" id="editor" aria-labelledby="editorTitle" hidden>
+        <form id="pageForm">
+            <header class="editor-header">
+                <div>
+                    <p class="eyebrow" id="editorEyebrow">Trang mới</p>
+                    <h2 id="editorTitle">Thêm kỷ niệm</h2>
+                </div>
+                <button class="icon-btn" type="button" id="editorClose" aria-label="Đóng trình soạn">
+                    <i class="fas fa-xmark"></i>
+                </button>
+            </header>
+
+            <div class="editor-body">
+                <input type="hidden" id="pageId">
+
+                <div class="grid-2">
+                    <label class="field">
+                        <span>Ngày <em>*</em></span>
+                        <input type="date" id="fieldDate" required>
+                    </label>
+                    <label class="field">
+                        <span>Thứ tự trong ngày</span>
+                        <input type="number" id="fieldOrder" step="1" value="0">
+                        <small>Số nhỏ đứng trước khi cùng một ngày.</small>
+                    </label>
+                </div>
+
+                <label class="field">
+                    <span>Tiêu đề</span>
+                    <input type="text" id="fieldTitle" maxlength="160" placeholder="Ví dụ: The first times">
+                </label>
+
+                <div class="grid-2">
+                    <label class="field">
+                        <span>Bố cục ảnh</span>
+                        <select id="fieldLayout">
+                            <option value="1">1 · Ảnh lớn + 2 ảnh nhỏ</option>
+                            <option value="2">2 · Hai ảnh cạnh nhau</option>
+                            <option value="3">3 · Ảnh lớn bên trái</option>
+                            <option value="4">4 · Ảnh lớn bên phải</option>
+                            <option value="5">5 · Một ảnh rộng</option>
+                            <option value="6">6 · Ba ảnh so le</option>
+                            <option value="7">7 · Ảnh chồng lớp</option>
+                        </select>
+                    </label>
+                    <div class="field">
+                        <span>Trạng thái</span>
+                        <label class="switch-row">
+                            <input type="checkbox" id="fieldPublished" checked>
+                            <span class="switch" aria-hidden="true"></span>
+                            <span>Hiển thị trên sách</span>
+                        </label>
+                        <small>Bỏ chọn để lưu nháp, khách xem sách sẽ không thấy trang này.</small>
+                    </div>
+                </div>
+
+                <label class="field">
+                    <span>Lời nhắn</span>
+                    <textarea id="fieldNote" rows="8" placeholder="Viết lại khoảnh khắc ấy…"></textarea>
+                    <small>Cho phép HTML: <code>&lt;br&gt;</code> để xuống dòng, <code>&lt;span class="highlight"&gt;…&lt;/span&gt;</code> để tô sáng.</small>
+                </label>
+
+                <label class="field">
+                    <span>Dòng ký tên</span>
+                    <input type="text" id="fieldSignature" maxlength="160" placeholder="Anh yêu em ❤️">
+                </label>
+
+                <div class="grid-2">
+                    <label class="field">
+                        <span>Hoa văn trang trí</span>
+                        <select id="fieldDecorIcon">
+                            <option value="">Không có</option>
+                            <option value="flower">Hoa</option>
+                            <option value="heart">Tim</option>
+                        </select>
+                    </label>
+                    <label class="field">
+                        <span>Vị trí hoa văn</span>
+                        <input type="text" id="fieldDecorStyle" placeholder="top: 10px; left: 10px;">
+                    </label>
+                </div>
+
+                <section class="repeat-section">
+                    <div class="repeat-head">
+                        <h3><i class="fas fa-images"></i> Ảnh</h3>
+                        <button type="button" class="btn btn-small" id="addPhotoBtn">
+                            <i class="fas fa-plus"></i> Thêm ảnh
+                        </button>
+                    </div>
+                    <p class="hint">
+                        Tải ảnh lên Supabase Storage, hoặc dán URL / đường dẫn có sẵn như
+                        <code>image/121101.JPEG</code>. Ảnh tối đa 10 MB.
+                    </p>
+                    <div class="repeat-list" id="photoList"></div>
+                </section>
+
+                <section class="repeat-section">
+                    <div class="repeat-head">
+                        <h3><i class="fas fa-comment-dots"></i> Bong bóng chữ</h3>
+                        <button type="button" class="btn btn-small" id="addBubbleBtn">
+                            <i class="fas fa-plus"></i> Thêm bong bóng
+                        </button>
+                    </div>
+                    <p class="hint">Lời thoại nhỏ nổi trên ảnh. Kiểu 1 và 2 là hai kiểu bong bóng có sẵn.</p>
+                    <div class="repeat-list" id="bubbleList"></div>
+                </section>
+            </div>
+
+            <footer class="editor-footer">
+                <span class="editor-note" id="editorNote"></span>
+                <div class="editor-actions">
+                    <button type="button" class="btn btn-ghost" id="cancelBtn">Hủy</button>
+                    <button type="submit" class="btn btn-primary" id="saveBtn">
+                        <i class="fas fa-floppy-disk"></i> Lưu trang
+                    </button>
+                </div>
+            </footer>
+        </form>
+    </aside>
+
+    <div class="toast" id="toast" role="status" aria-live="polite" hidden></div>
+
+    <noscript>
+        <div class="noscript">Trang quản trị cần JavaScript. Hãy bật JavaScript rồi tải lại.</div>
+    </noscript>
+
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.119.0/dist/umd/supabase.js"></script>
+    <script src="supabase-config.js"></script>
+    <script src="story-api.js"></script>
+    <script src="admin.js"></script>
+</body>
+
+</html>
